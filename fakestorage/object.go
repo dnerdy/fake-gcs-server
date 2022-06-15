@@ -624,12 +624,12 @@ func (s *Server) rewriteObject(r *http.Request) jsonResponse {
 		Content: append([]byte(nil), obj.Content...),
 	}
 
-	_, err = s.createObject(newObject)
+	created, err := s.createObject(newObject)
 	if err != nil {
 		return errToJsonResponse(err)
 	}
 
-	return jsonResponse{data: newObjectRewriteResponse(newObject.ObjectAttrs)}
+	return jsonResponse{data: newObjectRewriteResponse(created.ObjectAttrs)}
 }
 
 func (s *Server) downloadObject(w http.ResponseWriter, r *http.Request) {
@@ -748,7 +748,7 @@ func parseRange(rangeHeaderValue string, contentLength int64) (start int64, end 
 	}
 	rangeSpec := parts[1]
 	if len(rangeSpec) == 0 {
-		return 0, 0, fmt.Errorf("empty range")
+		return 0, 0, errors.New("empty range")
 	}
 	if rangeSpec[0] == '-' {
 		offsetFromEnd, err := strconv.ParseInt(rangeSpec, 10, 64)

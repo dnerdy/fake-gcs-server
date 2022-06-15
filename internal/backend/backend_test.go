@@ -79,24 +79,16 @@ func uploadAndCompare(t *testing.T, storage Storage, obj Object) int64 {
 	noError(t, err)
 	activeObj, err := storage.GetObject(obj.BucketName, obj.Name)
 	noError(t, err)
-	if isFSStorage && activeObj.Generation != 0 {
-		t.Errorf("FS should leave generation empty, as it does not persist it. Value: %d", activeObj.Generation)
-	}
-	if !isFSStorage && activeObj.Generation == 0 {
+	if activeObj.Generation == 0 {
 		t.Errorf("generation is empty, but we expect a unique int")
 	}
 	if err := compareObjects(activeObj, obj); err != nil {
 		t.Errorf("object retrieved differs from the created one. Descr: %v", err)
 	}
 	objFromGeneration, err := storage.GetObjectWithGeneration(obj.BucketName, obj.Name, activeObj.Generation)
-	if isFSStorage {
-		t.Log("FS should not implement fetch with generation")
-		shouldError(t, err)
-	} else {
-		noError(t, err)
-		if err := compareObjects(objFromGeneration, obj); err != nil {
-			t.Errorf("object retrieved differs from the created one. Descr: %v", err)
-		}
+	noError(t, err)
+	if err := compareObjects(objFromGeneration, obj); err != nil {
+		t.Errorf("object retrieved differs from the created one. Descr: %v", err)
 	}
 	return activeObj.Generation
 }

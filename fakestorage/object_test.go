@@ -441,10 +441,6 @@ func TestServerClientObjectRangeReader(t *testing.T) {
 		for _, test := range tests {
 			test := test
 			t.Run(test.testCase, func(t *testing.T) {
-				length := test.length
-				if length == -1 {
-					length = int64(len(content)) - test.offset
-				}
 				client := server.Client()
 				objHandle := client.Bucket(bucketName).Object(objectName)
 				reader, err := objHandle.NewRangeReader(context.TODO(), test.offset, test.length)
@@ -1140,6 +1136,9 @@ func TestServiceClientRewriteObject(t *testing.T) {
 				if !bytes.Equal(attrs.MD5, hash) {
 					t.Errorf("wrong hash returned\nwant %d\ngot   %d", hash, attrs.MD5)
 				}
+				if attrs.Generation == 0 {
+					t.Errorf("Generation was zero, expected non-zero")
+				}
 				obj, err := server.GetObject(test.bucketName, test.objectName)
 				if err != nil {
 					t.Fatal(err)
@@ -1271,6 +1270,9 @@ func TestServiceClientRewriteObjectWithGenerations(t *testing.T) {
 				}
 				if !bytes.Equal(attrs.MD5, expectedHash) {
 					t.Errorf("wrong hash returned\nwant %d\ngot   %d", expectedHash, attrs.MD5)
+				}
+				if attrs.Generation == 0 {
+					t.Errorf("Generation was zero, expected non-zero")
 				}
 				obj, err := server.GetObject(test.bucketName, test.objectName)
 				if err != nil {
